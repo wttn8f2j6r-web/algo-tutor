@@ -78,7 +78,7 @@
     <!-- Password Screen -->
     <div id="pwd-screen" style="position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;">
         <h1 style="font-size:1.6em;margin-bottom:6px;background:linear-gradient(90deg,#00d4ff,#7b2cbf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">C++动画讲解平台</h1>
-        <p style="color:#aaa;margin-bottom:24px;font-size:0.85em;">糖糖老师 · 算法动画教学</p>
+        <p style="color:#aaa;margin-bottom:24px;font-size:0.85em;">Algorithm Animation by Miss Tangtang</p>
         <input type="password" id="pwd-input" placeholder="请输入访问密码" onkeydown="if(event.key==='Enter')checkPwd()" style="width:240px;padding:12px 16px;border:1px solid rgba(255,255,255,0.2);border-radius:10px;background:rgba(0,0,0,0.3);color:#fff;font-size:0.95em;text-align:center;margin-bottom:12px;outline:none;">
         <button onclick="checkPwd()" style="width:240px;padding:12px;background:linear-gradient(90deg,#00d4ff,#0099cc);color:#fff;border:none;border-radius:10px;font-size:0.95em;cursor:pointer;">进入</button>
         <div id="pwd-error" style="color:#ff6b6b;margin-top:10px;font-size:0.85em;display:none;">密码错误，请重试</div>
@@ -88,7 +88,7 @@
     <div id="main-content" style="display:none;">
         <div class="container">
             <h1>C++动画讲解平台</h1>
-            <p class="subtitle">糖糖老师 · 算法动画教学</p>
+            <p class="subtitle">Algorithm Animation by Miss Tangtang</p>
 
             <!-- Quick Search -->
             <div class="quick-search">
@@ -128,7 +128,7 @@
 
             <!-- Credit -->
             <div class="credit-footer">
-                <div class="teacher">糖糖老师 制作</div>
+                <div class="teacher">From Miss Tangtang</div>
                 <div class="note">C++动画讲解平台 · 仅供教学使用 · 请勿外传</div>
             </div>
         </div>
@@ -158,15 +158,26 @@
         }
 
         function searchProblem() {
-            const input = document.getElementById('searchInput').value.trim().toLowerCase();
+            const rawInput = document.getElementById('searchInput').value.trim();
+            const input = rawInput.toLowerCase().replace(/\s/g, '');
             const resultDiv = document.getElementById('searchResult');
             if (!input) { resultDiv.innerHTML = ''; return; }
 
-            const problem = problems[input];
+            // Exact match first
+            let problem = problems[input];
+            // Partial match fallback
+            if (!problem) {
+                for (const key in problems) {
+                    if (key.includes(input) || input.includes(key)) {
+                        problem = problems[key];
+                        break;
+                    }
+                }
+            }
             if (problem) {
                 resultDiv.innerHTML = '找到：<a href="' + problem.url + '" style="color:#00d4ff;text-decoration:underline;">' + problem.name + ' → 点击进入</a>';
             } else {
-                resultDiv.innerHTML = '未找到题目 "' + input + '"，请检查题号是否正确';
+                resultDiv.innerHTML = '未找到题目 "' + rawInput + '"，请检查题号是否正确';
             }
         }
 

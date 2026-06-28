@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>N5696 完数的判定与统计 - 思路讲解动画</title>
+    <link rel="stylesheet" href="_shared/style.css">
+    <style>
+        /* Page-specific additions */
+        .nav-bar { margin-top: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-bar">
+            <a href="index.html">&larr; 返回首页</a>
+            <span class="nav-title">N5696 完数的判定与统计</span>
+        </div>
+
+        <h1>N5696 完数的判定与统计</h1>
+        <p class="subtitle">通俗易懂的思路讲解动画</p>
+
+        <div class="card">
+            <h2>题目理解</h2>
+            <p>输入一个正整数 <span class="highlight">N</span>，找出所有<strong>小于 N</strong> 的完数，每个完数单独输出一行，最后输出 <span class="highlight">*count</span>（完数的总个数）。</p>
+            <p style="margin-top:6px;">什么是<strong>完数</strong>？一个数如果恰好等于它的<strong>真因子</strong>（即除了自身以外的因子）之和，就是完数。</p>
+            <div style="text-align:center; margin: 8px 0;">
+                <span class="formula">6 = 1 + 2 + 3</span>
+                <span class="formula">28 = 1 + 2 + 4 + 7 + 14</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>核心思路</h2>
+            <ul>
+                <li>对每个数 <span class="highlight">i</span>（从 2 到 N-1），计算它的真因子之和 <span class="highlight">sum</span></li>
+                <li>枚举 <span class="highlight">j</span> 从 1 到 i/2，如果 j 能整除 i，就把 j 加入 sum</li>
+                <li>如果 <span class="highlight">sum == i</span>，则 i 是完数，输出并计数</li>
+                <li>最后输出 <span class="highlight">*count</span></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>交互演示</h2>
+            <div class="input-row">
+                <div class="input-group"><label>N=</label><input type="number" id="inpN" value="50" min="2" max="200"></div>
+            </div>
+            <div id="canvas-container">
+                <canvas id="mainCanvas"></canvas>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#51cf66;"></div> 完数</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ffd43b;"></div> 正在检查</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ff6b6b;"></div> 真因子</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>分步动画讲解</h2>
+            <div class="step-indicator">
+                <div class="step-dot active" id="dot0"></div>
+                <div class="step-dot" id="dot1"></div>
+                <div class="step-dot" id="dot2"></div>
+                <div class="step-dot" id="dot3"></div>
+                <div class="step-dot" id="dot4"></div>
+            </div>
+            <div class="explanation-box" id="explanation">
+                <p>点击「开始讲解」，我们来看看如何一步步找出所有完数！</p>
+            </div>
+            <div class="code-label" id="codeLabel">C++ 完整代码概览</div>
+            <div class="code-block" id="codeBlock"></div>
+            <div class="controls" id="controlsBar">
+                <button class="btn-secondary" id="btnVoice" onclick="toggleVoice()" style="flex:0;max-width:40px;font-size:1.1em;">🔇</button>
+                <button class="btn-primary" id="btnStart" onclick="toggleAnimation()">开始讲解</button>
+                <button class="btn-secondary" onclick="prevStep()">上一步</button>
+                <button class="btn-secondary" onclick="nextStep()">下一步</button>
+                <button class="btn-secondary" onclick="resetAnimation()">重置</button>
+            </div>
+            <div class="answer-box" id="answerBox" style="display:none;">
+                <div class="label">找到的完数</div>
+                <div class="value" id="answerValue">?</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>算法步骤总结</h2>
+            <p><strong>S1：</strong>读取正整数 N</p>
+            <p><strong>S2：</strong>初始化 count = 0，外层循环 i 从 2 到 N-1</p>
+            <p><strong>S3：</strong>对每个 i，内层循环 j 从 1 到 i/2，累加真因子到 sum</p>
+            <p><strong>S4：</strong>如果 sum == i，输出 i，count 加 1</p>
+            <p><strong>S5：</strong>输出 *count，表示完数总个数</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        let animStep = -1;
+        let isAnimating = false;
+        let isPaused = false;
+        let animTimer = null;
+
+        function resizeCanvas() {
+            const c = document.getElementById('canvas-container');
+            canvas.width = c.clientWidth;
+            canvas.height = c.clientHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+
+        function getN() {
+            return parseInt(document.getElementById('inpN').value) || 50;
+        }
+
+        function computePerfectNumbers(n) {
+            const res = [];
+            for (let i = 2; i < n; i++) {
+                let sum = 0;
+                for (let j = 1; j <= i / 2; j++) {
+                    if (i % j === 0) sum += j;
+                }
+                if (sum === i) res.push(i);
+            }
+            return res;
+        }
+
+        function getDemoNum(N) {
+            if (N > 28) return 28;
+            if (N > 6) return 6;
+            return Math.max(2, N - 1);
+        }
+
+        function getDemoFactors(num) {
+            const factors = [];
+            for (let j = 1; j <= num / 2; j++) {
+                if (num % j === 0) factors.push(j);
+            }
+            return factors;
+        }
+
+        function roundRect(x, y, w, h, r, fill) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        }
+
+        function draw() {
+            const N = getN();
+            const nums = computePerfectNumbers(N);
+            const demoNum = getDemoNum(N);
+            const demoFactors = getDemoFactors(demoNum);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const cols = Math.ceil(Math.sqrt(N));
+            const cellW = canvas.width / cols;
+            const cellH = Math.min(cellW * 0.65, 32);
+            const startY = 8;
+
+            for (let i = 1; i <= N; i++) {
+                const c = (i - 1) % cols;
+                const r = Math.floor((i - 1) / cols);
+                const x = c * cellW + 2;
+                const y = startY + r * cellH;
+                const w = cellW - 4;
+                const h = cellH - 4;
+
+                let bg = 'rgba(255,255,255,0.05)';
+                let textColor = '#ddd';
+                let isBold = false;
+
+                if (animStep >= 3 && nums.includes(i)) {
+                    bg = 'rgba(81,207,102,0.3)';
+                    textColor = '#51cf66';
+                    isBold = true;
+                }
+
+                if (animStep === 1 && i === demoNum) {
+                    bg = 'rgba(255,212,59,0.3)';
+                    textColor = '#ffd43b';
+                    isBold = true;
+                }
+
+                if (animStep === 2) {
+                    if (i === demoNum) {
+                        bg = 'rgba(255,212,59,0.3)';
+                        textColor = '#ffd43b';
+                        isBold = true;
+                    } else if (demoFactors.includes(i)) {
+                        bg = 'rgba(255,107,107,0.3)';
+                        textColor = '#ff6b6b';
+                        isBold = true;
+                    }
+                }
+
+                roundRect(x, y, w, h, 4, bg);
+                ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                ctx.fillStyle = textColor;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const fs = Math.min(13, w / 2.5);
+                ctx.font = (isBold ? 'bold ' : '') + fs + 'px Microsoft YaHei';
+                ctx.fillText(i, x + w / 2, y + h / 2);
+            }
+
+            if (animStep === 2) {
+                ctx.fillStyle = '#ffd43b';
+                ctx.textAlign = 'center';
+                ctx.font = '12px Microsoft YaHei';
+                const factorSum = demoFactors.reduce((a, b) => a + b, 0);
+                ctx.fillText('检查 ' + demoNum + '：真因子为 ' + demoFactors.join(', ') + '，和为 ' + factorSum, canvas.width / 2, canvas.height - 10);
+            } else if (animStep === 3) {
+                ctx.fillStyle = '#51cf66';
+                ctx.textAlign = 'center';
+                ctx.font = '12px Microsoft YaHei';
+                ctx.fillText('找到完数: ' + (nums.join(', ') || '无'), canvas.width / 2, canvas.height - 10);
+            } else if (animStep === 4) {
+                ctx.fillStyle = '#e0aaff';
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 13px Microsoft YaHei';
+                ctx.fillText('共找到 ' + nums.length + ' 个完数，输出 *' + nums.length, canvas.width / 2, canvas.height - 10);
+            }
+        }
+
+        const stepTexts = [
+            "点击「开始讲解」，我们来看看如何一步步找出所有完数！",
+            "第一步：读取正整数 n。我们要找出所有小于 n 的完数。",
+            "第二步：对每个数 i，枚举它的因子。技巧：j 只需循环到 sqrt(i)，同时收集 j 和 i/j 两个因子。",
+            "第三步：把因子和 s 减去 i 本身（去掉自身），如果 s == i，说明 i 是完数，输出它。",
+            "第四步：最后输出 '*' 加上完数的个数。例如 n=100 时，完数有 6 和 28，输出 *2。"
+        ];
+        const stepLabels = [
+            "C++ 完整代码概览", "Step 1：读取输入", "Step 2：枚举因子（sqrt优化）",
+            "Step 3：判断完数并输出", "Step 4：输出统计个数"
+        ];
+        const stepCodes = [
+            '<span class="keyword">#include</span> <span class="keyword">&lt;bits/stdc++.h&gt;</span>\n<span class="keyword">using namespace</span> std;\n\n<span class="keyword">int</span> main() {\n    <span class="keyword">int</span> n;\n    cin <span class="op">&gt;&gt;</span> n;\n    <span class="comment">// 后续步骤逐步展开...</span>\n    <span class="keyword">return</span> <span class="number">0</span>;\n}',
+            '<span class="keyword">int</span> n;\ncin <span class="op">&gt;&gt;</span> n;\n<span class="comment">// n = 上限，找出小于n的所有完数</span>',
+            '<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i <span class="op">&lt;</span> n; i++) {\n    <span class="keyword">int</span> s = <span class="number">0</span>;\n    <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j <span class="op">&lt;=</span> i / j; j++) {\n        <span class="keyword">if</span> (i % j == <span class="number">0</span>) {\n            s <span class="op">+=</span> j;\n            <span class="keyword">if</span> (j != i / j) s <span class="op">+=</span> i / j;\n        }\n    }\n    <span class="comment">// j只到sqrt(i)，同时加上j和i/j两个因子</span>',
+            '    s <span class="op">-=</span> i;  <span class="comment">// 减去自身，只保留真因子</span>\n    <span class="keyword">if</span> (s == i) {\n        cout <span class="op">&lt;&lt;</span> i <span class="op">&lt;&lt;</span> endl;\n        cnt++;\n    }\n}\n<span class="comment">// 完数 = 所有真因子之和等于自身</span>',
+            'cout <span class="op">&lt;&lt;</span> <span class="string">"*"</span> <span class="op">&lt;&lt;</span> cnt <span class="op">&lt;&lt;</span> endl;\n<span class="comment">// 输出完数的个数</span>'
+        ];
+
+        function updateExplanation() {
+            const idx = animStep + 1;
+            document.getElementById('explanation').innerHTML = '<p>' + stepTexts[idx] + '</p>';
+            document.getElementById('codeLabel').textContent = stepLabels[idx];
+            document.getElementById('codeBlock').innerHTML = stepCodes[idx];
+            speakText(stepTexts[idx]);
+
+            for (let i = 0; i <= 4; i++) {
+                const d = document.getElementById('dot' + i);
+                d.classList.remove('active', 'completed');
+                if (i === animStep) d.classList.add('active');
+                else if (i < animStep) d.classList.add('completed');
+            }
+
+            if (animStep >= 3) {
+                const N = getN();
+                const nums = computePerfectNumbers(N);
+                document.getElementById('answerBox').style.display = 'block';
+                document.getElementById('answerValue').textContent = nums.join(', ') || '无';
+            } else {
+                document.getElementById('answerBox').style.display = 'none';
+            }
+            draw();
+        }
+
+        function startAnimation() {
+            resetAnimation();
+            isAnimating = true; isPaused = false; animStep = 0;
+            updateExplanation(); updateStartButton();
+            animTimer = setInterval(() => {
+                if (!isPaused) {
+                    if (animStep >= 4) {
+                        clearInterval(animTimer);
+                        isAnimating = false;
+                        updateStartButton();
+                        return;
+                    }
+                    animStep++;
+                    updateExplanation(); updateStartButton();
+                }
+            }, 2500);
+        }
+
+        function toggleAnimation() {
+            if (!isAnimating) { startAnimation(); }
+            else if (isPaused) { isPaused = false; updateStartButton(); }
+            else { isPaused = true; stopSpeaking(); updateStartButton(); }
+        }
+
+        function updateStartButton() {
+            const b = document.getElementById('btnStart');
+            if (!isAnimating) { b.textContent = '开始讲解'; b.className = 'btn-primary'; }
+            else if (isPaused) { b.textContent = '继续'; b.className = 'btn-primary'; }
+            else { b.textContent = '暂停'; b.className = 'btn-secondary'; }
+        }
+
+        function nextStep() {
+            if (isAnimating) { clearInterval(animTimer); isAnimating = false; isPaused = false; updateStartButton(); }
+            if (animStep < 4) { animStep++; updateExplanation(); }
+        }
+
+        function prevStep() {
+            if (isAnimating) { clearInterval(animTimer); isAnimating = false; isPaused = false; updateStartButton(); }
+            if (animStep > 0) { animStep--; updateExplanation(); }
+        }
+
+        function resetAnimation() {
+            if (animTimer) clearInterval(animTimer);
+            isAnimating = false; isPaused = false; animStep = -1;
+            stopSpeaking();
+            document.getElementById('explanation').innerHTML = '<p>点击「开始讲解」，我们来看看如何一步步找出所有完数！</p>';
+            document.getElementById('codeLabel').textContent = 'C++ 完整代码概览';
+            document.getElementById('codeBlock').innerHTML = '<span class="keyword">#include</span> <span class="keyword">&lt;bits/stdc++.h&gt;</span>\n<span class="keyword">using namespace</span> std;\n\n<span class="keyword">int</span> main() {\n    <span class="keyword">int</span> n;\n    cin <span class="op">&gt;&gt;</span> n;\n    <span class="comment">// 后续步骤逐步展开...</span>\n    <span class="keyword">return</span> <span class="number">0</span>;\n}';
+            for (let i = 0; i <= 4; i++) { const d = document.getElementById('dot' + i); d.classList.remove('active', 'completed'); if (i === 0) d.classList.add('active'); }
+            document.getElementById('answerBox').style.display = 'none';
+            updateStartButton(); draw();
+        }
+
+        document.getElementById('inpN').addEventListener('input', () => { if (animStep >= 0) updateExplanation(); else draw(); });
+
+        resetAnimation();
+        draw();
+    </script>
+    <script>
+    // Voice system
+    let voiceEnabled = true;
+    let currentUtterance = null;
+
+    function speakText(text) {
+        if (!voiceEnabled || !window.speechSynthesis) return;
+        speechSynthesis.cancel();
+        currentUtterance = new SpeechSynthesisUtterance(text);
+        currentUtterance.lang = 'zh-CN';
+        currentUtterance.rate = 0.9;
+        speechSynthesis.speak(currentUtterance);
+    }
+
+    function stopSpeaking() {
+        if (window.speechSynthesis) speechSynthesis.cancel();
+    }
+
+    function toggleVoice() {
+        voiceEnabled = !voiceEnabled;
+        const btn = document.getElementById('btnVoice');
+        if (btn) {
+            btn.textContent = voiceEnabled ? '🔇' : '🔊';
+            btn.style.opacity = voiceEnabled ? '1' : '0.5';
+        }
+        if (!voiceEnabled) stopSpeaking();
+    }
+    </script>
+</body>
+</html>

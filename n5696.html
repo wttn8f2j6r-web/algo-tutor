@@ -341,10 +341,27 @@
     let voiceEnabled = true;
     let currentUtterance = null;
 
+    let mandarinVoice = null;
+    function findMandarinVoice() {
+        if (mandarinVoice) return mandarinVoice;
+        const voices = speechSynthesis.getVoices();
+        const keywords = ['Mandarin','Huihui','Yaoyao','Kangkang','Ting-Ting','Mei-Jia'];
+        for (const kw of keywords) {
+            const v = voices.find(v => v.name.includes(kw) && !v.name.includes('Cantonese'));
+            if (v) { mandarinVoice = v; break; }
+        }
+        if (!mandarinVoice) {
+            mandarinVoice = voices.find(v => v.lang === 'zh-CN' && !v.name.includes('Cantonese') && !v.name.includes('Tracy') && !v.name.includes('HiuGaai'));
+        }
+        return mandarinVoice;
+    }
+    speechSynthesis.onvoiceschanged = findMandarinVoice;
     function speakText(text) {
         if (!voiceEnabled || !window.speechSynthesis) return;
         speechSynthesis.cancel();
         currentUtterance = new SpeechSynthesisUtterance(text);
+        const v = findMandarinVoice();
+        if (v) currentUtterance.voice = v;
         currentUtterance.lang = 'zh-CN';
         currentUtterance.rate = 0.9;
         speechSynthesis.speak(currentUtterance);

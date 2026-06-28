@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>算法动画讲解 - AlgoTutor</title>
+    <link rel="stylesheet" href="_shared/style.css">
+</head>
+<body>
+    <!-- Password Screen -->
+    <div id="pwd-screen">
+        <h1>AlgoTutor</h1>
+        <p>算法动画讲解平台</p>
+        <input type="password" id="pwd-input" placeholder="请输入访问密码" onkeydown="if(event.key==='Enter')checkPwd()">
+        <button onclick="checkPwd()">进入</button>
+        <div class="error" id="pwd-error">密码错误，请重试</div>
+    </div>
+
+    <!-- Main Content (hidden until password correct) -->
+    <div id="main-content" style="display:none;">
+        <div class="container">
+            <h1>AlgoTutor</h1>
+            <p class="subtitle">算法动画讲解平台</p>
+
+            <div class="card">
+                <h2>题目列表</h2>
+                <p>点击题目卡片进入动画讲解页面</p>
+                <div class="home-grid">
+                    <a href="abc255c.html" class="problem-card">
+                        <div class="id">ABC255C</div>
+                        <h3>±1操作</h3>
+                        <p>给定整数X，通过±1操作使其变成等差数列中的"好数"，求最小操作次数。</p>
+                        <span class="tag">等差数列 / 最近距离</span>
+                    </a>
+                    <a href="n5696.html" class="problem-card">
+                        <div class="id">N5696</div>
+                        <h3>完数的判定与统计</h3>
+                        <p>完数等于其所有真因子之和。输入N，输出小于N的所有完数及个数。</p>
+                        <span class="tag">因子 / 枚举</span>
+                    </a>
+                    <a href="n4026.html" class="problem-card">
+                        <div class="id">N4026</div>
+                        <h3>筛选质数</h3>
+                        <p>输入正整数n，输出小于等于n的所有质数。学习质数的判定方法。</p>
+                        <span class="tag">质数 / 筛法</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>使用说明</h2>
+                <ul>
+                    <li>每道题都有<strong>交互式数轴动画</strong>，可以调整参数观察不同情况</li>
+                    <li>点击<strong>「开始讲解」</strong>可以自动播放分步动画</li>
+                    <li>每一步都配有对应的<strong>C++代码</strong>和文字说明</li>
+                    <li>支持<strong>暂停/继续</strong>、<strong>上一步/下一步</strong>手动控制</li>
+                </ul>
+            </div>
+
+            <p class="subtitle" style="margin-top:20px; font-size:0.75em;">
+                AlgoTutor | 密码保护内容，请勿外传
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const CORRECT_PWD = 'tangtang';
+
+        function checkPwd() {
+            const input = document.getElementById('pwd-input').value;
+            if (input === CORRECT_PWD) {
+                document.getElementById('pwd-screen').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                sessionStorage.setItem('algo_auth', '1');
+            } else {
+                document.getElementById('pwd-error').style.display = 'block';
+                document.getElementById('pwd-input').value = '';
+            }
+        }
+
+        // Auto-login if already authenticated in this session
+        if (sessionStorage.getItem('algo_auth') === '1') {
+            document.getElementById('pwd-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

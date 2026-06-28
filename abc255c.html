@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ABC255C ±1操作 - AlgoTutor</title>
+    <link rel="stylesheet" href="_shared/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav-bar">
+            <a href="index.html">&larr; 返回首页</a>
+            <div class="nav-title">ABC255C ±1操作</div>
+        </div>
+        <h1>ABC255C ±1操作</h1>
+        <p class="subtitle">通俗易懂的思路讲解动画</p>
+
+        <div class="card">
+            <h2>题目理解</h2>
+            <p>给定整数 <span class="highlight">X</span>，可做 +1/-1 操作。等差数列（好数）：首项 <span class="highlight">A</span>，公差 <span class="highlight">D</span>，共 <span class="highlight">N</span> 项。问让 X 变成好数最少几次？</p>
+        </div>
+
+        <div class="card">
+            <h2>核心思路</h2>
+            <div style="text-align:center; margin: 8px 0;">
+                <span class="formula">在等差数列中找到离 X 最近的数，距离就是答案！</span>
+            </div>
+            <ul>
+                <li>等差数列项：A, A+D, A+2D, ..., A+(N-1)D</li>
+                <li>到某个好数的距离 = |X - 那个好数|，找最小值</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>交互演示</h2>
+            <div class="input-row">
+                <div class="input-group"><label>X=</label><input type="number" id="inpX" value="10"></div>
+                <div class="input-group"><label>A=</label><input type="number" id="inpA" value="3"></div>
+                <div class="input-group"><label>D=</label><input type="number" id="inpD" value="4"></div>
+                <div class="input-group"><label>N=</label><input type="number" id="inpN" value="5"></div>
+            </div>
+            <div id="canvas-container">
+                <canvas id="mainCanvas"></canvas>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#ff6b6b;"></div> X</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#51cf66;"></div> 好数</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ffd43b;"></div> 最近好数</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>分步动画讲解</h2>
+            <div class="step-indicator">
+                <div class="step-dot active" id="dot0"></div>
+                <div class="step-dot" id="dot1"></div>
+                <div class="step-dot" id="dot2"></div>
+                <div class="step-dot" id="dot3"></div>
+                <div class="step-dot" id="dot4"></div>
+            </div>
+            <div class="explanation-box" id="explanation">
+                <p>点击「开始讲解」，我们来看看如何一步步求解！</p>
+            </div>
+            <div class="code-label" id="codeLabel">C++ 完整代码概览</div>
+            <div class="code-block" id="codeBlock"></div>
+            <div class="controls" id="controlsBar">
+                <button class="btn-secondary" id="btnVoice" onclick="toggleVoice()" style="flex:0;max-width:40px;font-size:1.1em;">🔇</button>
+                <button class="btn-primary" id="btnStart" onclick="toggleAnimation()">开始讲解</button>
+                <button class="btn-secondary" onclick="prevStep()">上一步</button>
+                <button class="btn-secondary" onclick="nextStep()">下一步</button>
+                <button class="btn-secondary" onclick="resetAnimation()">重置</button>
+            </div>
+            <div class="answer-box" id="answerBox" style="display:none;">
+                <div class="label">最小操作次数</div>
+                <div class="value" id="answerValue">?</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>算法步骤总结</h2>
+            <p><strong>S1：</strong>读取 x, a, d, n</p>
+            <p><strong>S2：</strong>特判 d==0，所有项都等于 a</p>
+            <p><strong>S3：</strong>若 d&lt;0 规范化，确定范围 [l, r]</p>
+            <p><strong>S4：</strong>若 x 在左/右侧，直接算距离</p>
+            <p><strong>S5：</strong>若 x 在范围内，用 (x-a)%d 找最近项</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        let animStep = -1;
+        let isAnimating = false;
+        let isPaused = false;
+        let animTimer = null;
+
+        function resizeCanvas() {
+            const c = document.getElementById('canvas-container');
+            canvas.width = c.clientWidth;
+            canvas.height = c.clientHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+
+        function getValues() {
+            return {
+                X: parseInt(document.getElementById('inpX').value) || 0,
+                A: parseInt(document.getElementById('inpA').value) || 0,
+                D: parseInt(document.getElementById('inpD').value) || 1,
+                N: parseInt(document.getElementById('inpN').value) || 1
+            };
+        }
+
+        function getSequence(A, D, N) {
+            let seq = [];
+            for (let i = 0; i < N; i++) seq.push(A + i * D);
+            return seq;
+        }
+
+        function worldToScreen(val, minVal, maxVal, w, pad) {
+            const r = maxVal - minVal;
+            if (r === 0) return w / 2;
+            return pad + (val - minVal) / r * (w - 2 * pad);
+        }
+
+        function findNearest(X, A, D, N) {
+            const seq = getSequence(A, D, N);
+            const mn = Math.min(...seq);
+            const mx = Math.max(...seq);
+            if (X <= mn) return mn;      // X 在范围左边
+            if (X >= mx) return mx;      // X 在范围右边
+            // X 在范围内，暴力找最近项
+            let best = seq[0], bestD = Math.abs(X - best);
+            for (const v of seq) {
+                const dist = Math.abs(X - v);
+                if (dist < bestD) { bestD = dist; best = v; }
+            }
+            return best;
+        }
+
+        function draw() {
+            const { X, A, D, N } = getValues();
+            const seq = getSequence(A, D, N);
+            const last = seq[seq.length - 1];
+            let minV = Math.min(X, A, last) - 2;
+            let maxV = Math.max(X, A, last) + 2;
+            if (D > 0) { minV = Math.min(minV, A - D); maxV = Math.max(maxV, last + D); }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const pad = 40, cy = canvas.height / 2;
+
+            // 数轴
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(pad, cy); ctx.lineTo(canvas.width - pad, cy); ctx.stroke();
+
+            // 刻度
+            ctx.fillStyle = '#888'; ctx.textAlign = 'center';
+            const fs = Math.min(11, canvas.width / 40);
+            ctx.font = fs + 'px Microsoft YaHei';
+            for (let v = Math.floor(minV); v <= Math.ceil(maxV); v++) {
+                const x = worldToScreen(v, minV, maxV, canvas.width, pad);
+                ctx.beginPath(); ctx.moveTo(x, cy - 4); ctx.lineTo(x, cy + 4);
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke();
+                ctx.fillText(v, x, cy + 16);
+            }
+
+            // 好数
+            seq.forEach((v, i) => {
+                const x = worldToScreen(v, minV, maxV, canvas.width, pad);
+                const isN = animStep >= 4 && v === findNearest(X, A, D, N);
+                const r = isN ? 12 : 8;
+                ctx.beginPath(); ctx.arc(x, cy - 30, r, 0, Math.PI * 2);
+                ctx.fillStyle = isN ? '#ffd43b' : '#51cf66'; ctx.fill();
+                if (isN) { ctx.shadowColor = '#ffd43b'; ctx.shadowBlur = 15; ctx.stroke(); ctx.shadowBlur = 0; }
+                ctx.fillStyle = '#fff'; ctx.font = (isN ? 'bold ' : '') + fs + 'px Microsoft YaHei';
+                ctx.fillText(v, x, cy - 26);
+                if (i === 0) { ctx.fillStyle = '#51cf66'; ctx.font = (fs-1) + 'px Microsoft YaHei'; ctx.fillText('A', x, cy - 46); }
+                else if (i === seq.length - 1) { ctx.fillStyle = '#51cf66'; ctx.font = (fs-1) + 'px Microsoft YaHei'; ctx.fillText('末项', x, cy - 46); }
+                if (isN) { ctx.fillStyle = '#ffd43b'; ctx.font = 'bold ' + (fs-1) + 'px Microsoft YaHei'; ctx.fillText('最近!', x, cy - 56); }
+            });
+
+            // X
+            const xp = worldToScreen(X, minV, maxV, canvas.width, pad);
+            ctx.beginPath(); ctx.arc(xp, cy + 30, 10, 0, Math.PI * 2); ctx.fillStyle = '#ff6b6b'; ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = 'bold ' + fs + 'px Microsoft YaHei'; ctx.fillText('X=' + X, xp, cy + 34);
+
+            // 连线
+            if (animStep >= 4) {
+                const nr = findNearest(X, A, D, N);
+                const np = worldToScreen(nr, minV, maxV, canvas.width, pad);
+                ctx.beginPath(); ctx.setLineDash([6, 3]);
+                ctx.moveTo(xp, cy + 20); ctx.lineTo(np, cy - 20);
+                ctx.strokeStyle = '#ffd43b'; ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+                ctx.fillStyle = '#ffd43b'; ctx.font = 'bold ' + fs + 'px Microsoft YaHei';
+                ctx.fillText('距离=' + Math.abs(X - nr), (xp + np) / 2, cy);
+            }
+
+            // 范围框
+            if (animStep >= 2) {
+                const leftVal = Math.min(A, last);
+                const rightVal = Math.max(A, last);
+                const l = worldToScreen(leftVal, minV, maxV, canvas.width, pad);
+                const r = worldToScreen(rightVal, minV, maxV, canvas.width, pad);
+                ctx.fillStyle = 'rgba(81,207,102,0.06)'; ctx.fillRect(l, cy - 60, r - l, 80);
+                ctx.strokeStyle = 'rgba(81,207,102,0.3)'; ctx.lineWidth = 1; ctx.strokeRect(l, cy - 60, r - l, 80);
+                if (animStep === 2) { ctx.fillStyle = '#51cf66'; ctx.font = (fs-1) + 'px Microsoft YaHei'; ctx.fillText('好数范围', (l + r) / 2, cy - 64); }
+            }
+            
+            // X位置判断
+            if (animStep === 3) {
+                const leftVal = Math.min(A, last);
+                const rightVal = Math.max(A, last);
+                ctx.fillStyle = '#ff6b6b'; ctx.font = (fs-1) + 'px Microsoft YaHei';
+                if (X < leftVal) ctx.fillText('X在左边', xp, cy + 56);
+                else if (X > rightVal) ctx.fillText('X在右边', xp, cy + 56);
+                else ctx.fillText('X在范围内', xp, cy + 56);
+            }
+        }
+
+        function updateExplanation() {
+            const texts = [
+                "点击「开始讲解」，我们来看看如何一步步求解！",
+                "第一步：读取 x, a, d, n 四个数。用 using LL = long long 简化类型。",
+                "第二步：特判 d==0。此时所有项都等于 a，答案就是 |x-a|。",
+                "第三步：若 d<0，把首项改成原末项、公差变正。然后确定范围 [l, r]。",
+                "第四步：判断 x 在哪里？若 x>=r 或 x<=l，直接算到边界的距离。",
+                "第五步：x 在范围内，用 (x-a)%d 得到距离前一项的距离，再和 d-diff 比较，输出较小值！"
+            ];
+            const labels = [
+                "C++ 完整代码概览", "Step 1：读取输入", "Step 2：特判 d==0",
+                "Step 3：规范化 + 确定范围", "Step 4：判断 x 位置", "Step 5：取模找最近项"
+            ];
+            const codes = [
+                '<span class="keyword">#include</span> <span class="string">&lt;bits/stdc++.h&gt;</span>\n<span class="keyword">using namespace</span> std;\n<span class="keyword">using</span> LL <span class="op">=</span> <span class="type">long long</span>;\n\n<span class="keyword">int</span> main() {\n    LL x, a, d, n;\n    cin <span class="op">&gt;&gt;</span> x <span class="op">&gt;&gt;</span> a <span class="op">&gt;&gt;</span> d <span class="op">&gt;&gt;</span> n;\n    <span class="comment">// 后续步骤逐步展开...</span>\n    <span class="keyword">return</span> <span class="number">0</span>;\n}',
+                '<span class="keyword">using</span> LL <span class="op">=</span> <span class="type">long long</span>;\nLL x, a, d, n;\ncin <span class="op">&gt;&gt;</span> x <span class="op">&gt;&gt;</span> a <span class="op">&gt;&gt;</span> d <span class="op">&gt;&gt;</span> n;\n<span class="comment">// x=起点, a=首项, d=公差, n=项数</span>',
+                '<span class="keyword">if</span> (d <span class="op">==</span> <span class="number">0</span>) {\n    cout <span class="op">&lt;&lt;</span> <span class="function">abs</span>(x - a);\n    <span class="keyword">return</span> <span class="number">0</span>;\n}\n<span class="comment">// 所有项都等于 a，直接输出距离</span>',
+                '<span class="keyword">if</span> (d <span class="op">&lt;</span> <span class="number">0</span>) {\n    a <span class="op">=</span> a <span class="op">+</span> (n<span class="op">-</span><span class="number">1</span>) <span class="op">*</span> d;\n    d <span class="op">=</span> <span class="op">-</span>d;\n}\nLL l <span class="op">=</span> a, r <span class="op">=</span> a <span class="op">+</span> (n<span class="op">-</span><span class="number">1</span>) <span class="op">*</span> d;\n<span class="comment">// 范围 [l, r]</span>',
+                '<span class="keyword">if</span> (x <span class="op">&gt;=</span> r) cout <span class="op">&lt;&lt;</span> x <span class="op">-</span> r;\n<span class="keyword">else if</span> (x <span class="op">&lt;=</span> l) cout <span class="op">&lt;&lt;</span> l <span class="op">-</span> x;\n<span class="keyword">else</span> {\n    <span class="comment">// x 在 [l, r] 内，继续...</span>\n}',
+                'LL diff <span class="op">=</span> (x <span class="op">-</span> a) <span class="op">%</span> d;\ncout <span class="op">&lt;&lt;</span> <span class="function">min</span>(diff, d <span class="op">-</span> diff);\n<span class="comment">// diff=距离前一项, d-diff=距离后一项</span>'
+            ];
+            const idx = animStep + 1;
+            document.getElementById('explanation').innerHTML = '<p>' + texts[idx] + '</p>';
+            document.getElementById('codeLabel').textContent = labels[idx];
+            document.getElementById('codeBlock').innerHTML = codes[idx];
+
+            speakText(texts[idx]);
+
+            for (let i = 0; i <= 4; i++) {
+                const d = document.getElementById('dot' + i);
+                d.classList.remove('active', 'completed');
+                if (i === animStep) d.classList.add('active');
+                else if (i < animStep) d.classList.add('completed');
+            }
+
+            if (animStep >= 4) {
+                const { X, A, D, N } = getValues();
+                document.getElementById('answerBox').style.display = 'block';
+                document.getElementById('answerValue').textContent = Math.abs(X - findNearest(X, A, D, N));
+            } else {
+                document.getElementById('answerBox').style.display = 'none';
+            }
+            draw();
+        }
+
+        function startAnimation() {
+            resetAnimation();
+            isAnimating = true; isPaused = false; animStep = 0;
+            updateExplanation(); updateStartButton();
+            animTimer = setInterval(() => {
+                if (!isPaused) {
+                    if (animStep >= 4) {
+                        clearInterval(animTimer);
+                        isAnimating = false;
+                        updateStartButton();
+                        return;
+                    }
+                    animStep++;
+                    updateExplanation(); updateStartButton();
+                }
+            }, 2500);
+        }
+
+        function toggleAnimation() {
+            if (!isAnimating) { startAnimation(); }
+            else if (isPaused) { isPaused = false; updateStartButton(); }
+            else { isPaused = true; stopSpeaking(); updateStartButton(); }
+        }
+
+        function updateStartButton() {
+            const b = document.getElementById('btnStart');
+            if (!isAnimating) { b.textContent = '开始讲解'; b.className = 'btn-primary'; }
+            else if (isPaused) { b.textContent = '继续'; b.className = 'btn-primary'; }
+            else { b.textContent = '暂停'; b.className = 'btn-secondary'; }
+        }
+
+        function nextStep() {
+            if (isAnimating) { clearInterval(animTimer); isAnimating = false; isPaused = false; updateStartButton(); }
+            if (animStep < 4) { animStep++; updateExplanation(); }
+        }
+
+        function prevStep() {
+            if (isAnimating) { clearInterval(animTimer); isAnimating = false; isPaused = false; updateStartButton(); }
+            if (animStep > 0) { animStep--; updateExplanation(); }
+        }
+
+        function resetAnimation() {
+            if (animTimer) clearInterval(animTimer);
+            isAnimating = false; isPaused = false; animStep = -1;
+            stopSpeaking();
+            document.getElementById('explanation').innerHTML = '<p>点击「开始讲解」，我们来看看如何一步步求解！</p>';
+            document.getElementById('codeLabel').textContent = 'C++ 完整代码概览';
+            document.getElementById('codeBlock').innerHTML = '<span class="keyword">#include</span> <span class="string">&lt;bits/stdc++.h&gt;</span>\n<span class="keyword">using namespace</span> std;\n<span class="keyword">using</span> LL <span class="op">=</span> <span class="type">long long</span>;\n\n<span class="keyword">int</span> main() {\n    LL x, a, d, n;\n    cin <span class="op">&gt;&gt;</span> x <span class="op">&gt;&gt;</span> a <span class="op">&gt;&gt;</span> d <span class="op">&gt;&gt;</span> n;\n    <span class="comment">// 后续步骤逐步展开...</span>\n    <span class="keyword">return</span> <span class="number">0</span>;\n}';
+            for (let i = 0; i <= 4; i++) { const d = document.getElementById('dot' + i); d.classList.remove('active', 'completed'); if (i === 0) d.classList.add('active'); }
+            document.getElementById('answerBox').style.display = 'none';
+            updateStartButton(); draw();
+        }
+
+        ['inpX', 'inpA', 'inpD', 'inpN'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => { if (animStep >= 0) updateExplanation(); else draw(); });
+        });
+
+        resetAnimation();
+        draw();
+    </script>
+    <script>
+    let voiceEnabled = true;
+    function speakText(text) {
+        if (!voiceEnabled || !window.speechSynthesis) return;
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'zh-CN'; u.rate = 0.9;
+        speechSynthesis.speak(u);
+    }
+    function stopSpeaking() { if (window.speechSynthesis) speechSynthesis.cancel(); }
+    function toggleVoice() {
+        voiceEnabled = !voiceEnabled;
+        const btn = document.getElementById('btnVoice');
+        if (btn) { btn.textContent = voiceEnabled ? '🔇' : '🔊'; btn.style.opacity = voiceEnabled ? '1' : '0.5'; }
+        if (!voiceEnabled) stopSpeaking();
+    }
+    </script>
+</body>
+</html>

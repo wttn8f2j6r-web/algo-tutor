@@ -3,28 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>算法动画讲解 - AlgoTutor</title>
+    <title>C++动画讲解平台</title>
     <link rel="stylesheet" href="shared/style.css">
+    <style>
+        /* Quick search section */
+        .quick-search {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--rule);
+            text-align: center;
+        }
+        .quick-search h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        .search-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+        }
+        .search-row input {
+            width: 140px;
+            padding: 10px 14px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 1em;
+            text-align: center;
+            outline: none;
+        }
+        .search-row input:focus {
+            border-color: var(--accent);
+        }
+        .search-row button {
+            padding: 10px 18px;
+            background: linear-gradient(90deg, var(--accent), #0099cc);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9em;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .search-result {
+            margin-top: 8px;
+            color: var(--accent);
+            font-size: 0.85em;
+            min-height: 20px;
+        }
+        /* Credit footer */
+        .credit-footer {
+            text-align: center;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        .credit-footer .teacher {
+            font-size: 1em;
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .credit-footer .note {
+            font-size: 0.75em;
+            color: var(--muted);
+        }
+    </style>
 </head>
 <body>
     <!-- Password Screen -->
     <div id="pwd-screen" style="position:fixed;inset:0;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;">
-        <h1 style="font-size:2em;margin-bottom:8px;background:linear-gradient(90deg,#00d4ff,#7b2cbf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">AlgoTutor</h1>
-        <p style="color:#aaa;margin-bottom:30px;font-size:1em;">算法动画讲解平台</p>
-        <input type="password" id="pwd-input" placeholder="请输入访问密码" onkeydown="if(event.key==='Enter')checkPwd()" style="width:260px;padding:14px 18px;border:1px solid rgba(255,255,255,0.2);border-radius:12px;background:rgba(0,0,0,0.3);color:#fff;font-size:1em;text-align:center;margin-bottom:14px;outline:none;">
-        <button onclick="checkPwd()" style="width:260px;padding:14px;background:linear-gradient(90deg,#00d4ff,#0099cc);color:#fff;border:none;border-radius:12px;font-size:1em;cursor:pointer;">进入</button>
-        <div class="error" id="pwd-error" style="color:#ff6b6b;margin-top:12px;font-size:0.9em;display:none;">密码错误，请重试</div>
+        <h1 style="font-size:1.6em;margin-bottom:6px;background:linear-gradient(90deg,#00d4ff,#7b2cbf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">C++动画讲解平台</h1>
+        <p style="color:#aaa;margin-bottom:24px;font-size:0.85em;">糖糖老师 · 算法动画教学</p>
+        <input type="password" id="pwd-input" placeholder="请输入访问密码" onkeydown="if(event.key==='Enter')checkPwd()" style="width:240px;padding:12px 16px;border:1px solid rgba(255,255,255,0.2);border-radius:10px;background:rgba(0,0,0,0.3);color:#fff;font-size:0.95em;text-align:center;margin-bottom:12px;outline:none;">
+        <button onclick="checkPwd()" style="width:240px;padding:12px;background:linear-gradient(90deg,#00d4ff,#0099cc);color:#fff;border:none;border-radius:10px;font-size:0.95em;cursor:pointer;">进入</button>
+        <div id="pwd-error" style="color:#ff6b6b;margin-top:10px;font-size:0.85em;display:none;">密码错误，请重试</div>
     </div>
 
-    <!-- Main Content (hidden until password correct) -->
+    <!-- Main Content -->
     <div id="main-content" style="display:none;">
         <div class="container">
-            <h1>AlgoTutor</h1>
-            <p class="subtitle">算法动画讲解平台</p>
+            <h1>C++动画讲解平台</h1>
+            <p class="subtitle">糖糖老师 · 算法动画教学</p>
 
+            <!-- Quick Search -->
+            <div class="quick-search">
+                <h3>快速查找题目</h3>
+                <div class="search-row">
+                    <input type="text" id="searchInput" placeholder="输入题号，如 N5696" onkeydown="if(event.key==='Enter')searchProblem()">
+                    <button onclick="searchProblem()">查找</button>
+                </div>
+                <div class="search-result" id="searchResult"></div>
+            </div>
+
+            <!-- Problem List -->
             <div class="card">
                 <h2>题目列表</h2>
-                <p>点击题目卡片进入动画讲解页面</p>
+                <p>点击题目卡片进入动画讲解</p>
                 <div class="home-grid">
                     <a href="abc255c.html" class="problem-card">
                         <div class="id">ABC255C</div>
@@ -42,29 +121,29 @@
                         <div class="id">N4026</div>
                         <h3>筛选质数</h3>
                         <p>输入正整数n，输出小于等于n的所有质数。学习质数的判定方法。</p>
-                        <span class="tag">质数 / 筛法</span>
+                        <span class="tag">质数 / 试除法</span>
                     </a>
                 </div>
             </div>
 
-            <div class="card">
-                <h2>使用说明</h2>
-                <ul>
-                    <li>每道题都有<strong>交互式数轴动画</strong>，可以调整参数观察不同情况</li>
-                    <li>点击<strong>「开始讲解」</strong>可以自动播放分步动画</li>
-                    <li>每一步都配有对应的<strong>C++代码</strong>和文字说明</li>
-                    <li>支持<strong>暂停/继续</strong>、<strong>上一步/下一步</strong>手动控制</li>
-                </ul>
+            <!-- Credit -->
+            <div class="credit-footer">
+                <div class="teacher">糖糖老师 制作</div>
+                <div class="note">C++动画讲解平台 · 仅供教学使用 · 请勿外传</div>
             </div>
-
-            <p class="subtitle" style="margin-top:20px; font-size:0.75em;">
-                AlgoTutor | 密码保护内容，请勿外传
-            </p>
         </div>
     </div>
 
     <script>
         const CORRECT_PWD = 'tangtang';
+
+        // Problem database
+        const problems = {
+            'abc255c': { url: 'abc255c.html', name: 'ABC255C ±1操作' },
+            'c0904': { url: 'abc255c.html', name: 'ABC255C ±1操作' },
+            'n5696': { url: 'n5696.html', name: 'N5696 完数的判定与统计' },
+            'n4026': { url: 'n4026.html', name: 'N4026 筛选质数' }
+        };
 
         function checkPwd() {
             const input = document.getElementById('pwd-input').value;
@@ -78,7 +157,19 @@
             }
         }
 
-        // Auto-login if already authenticated in this session
+        function searchProblem() {
+            const input = document.getElementById('searchInput').value.trim().toLowerCase();
+            const resultDiv = document.getElementById('searchResult');
+            if (!input) { resultDiv.innerHTML = ''; return; }
+
+            const problem = problems[input];
+            if (problem) {
+                resultDiv.innerHTML = '找到：<a href="' + problem.url + '" style="color:#00d4ff;text-decoration:underline;">' + problem.name + ' → 点击进入</a>';
+            } else {
+                resultDiv.innerHTML = '未找到题目 "' + input + '"，请检查题号是否正确';
+            }
+        }
+
         if (sessionStorage.getItem('algo_auth') === '1') {
             document.getElementById('pwd-screen').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';

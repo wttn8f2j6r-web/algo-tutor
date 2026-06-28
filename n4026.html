@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>N4026 筛选质数 - 思路讲解动画</title>
+    <link rel="stylesheet" href="_shared/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav-bar">
+            <a href="index.html">← 返回首页</a>
+            <span class="nav-title">N4026 筛选质数</span>
+        </div>
+
+        <h1>N4026 筛选质数</h1>
+        <p class="subtitle">通俗易懂的思路讲解动画</p>
+
+        <div class="card">
+            <h2>题目理解</h2>
+            <p>输入一个正整数 <span class="highlight">n</span>（1 &le; n &le; 100），输出所有 <span class="highlight">小于等于 n</span> 的质数。</p>
+            <p style="margin-top:6px; color:#bbb;">质数定义：大于 1 的自然数，除了 1 和它本身以外，不能被其他自然数整除。</p>
+        </div>
+
+        <div class="card">
+            <h2>核心思路</h2>
+            <div style="text-align:center; margin: 8px 0;">
+                <span class="formula">试除法：对每个数 i，用 2 ~ &radic;i 试除</span>
+            </div>
+            <ul>
+                <li>1 既不是质数也不是合数，直接从 2 开始检查</li>
+                <li>对于每个 i，枚举 j 从 2 到 &radic;i</li>
+                <li>如果存在 j 能整除 i，则 i 不是质数</li>
+                <li>如果没有任何 j 能整除 i，则 i 是质数</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>交互演示</h2>
+            <div class="input-row">
+                <div class="input-group"><label>n=</label><input type="number" id="inpN" value="30" min="1" max="100"></div>
+            </div>
+            <div id="canvas-container">
+                <canvas id="mainCanvas"></canvas>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#51cf66;"></div> 质数</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ff6b6b;"></div> 合数</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ffd43b;"></div> 正在检查</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#666;"></div> 1（非质数）</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>分步动画讲解</h2>
+            <div class="step-indicator">
+                <div class="step-dot active" id="dot0"></div>
+                <div class="step-dot" id="dot1"></div>
+                <div class="step-dot" id="dot2"></div>
+                <div class="step-dot" id="dot3"></div>
+                <div class="step-dot" id="dot4"></div>
+            </div>
+            <div class="explanation-box" id="explanation">
+                <p>点击「开始讲解」，我们来看看如何一步步筛选质数！</p>
+            </div>
+            <div class="code-label" id="codeLabel">C++ 完整代码概览</div>
+            <div class="code-block" id="codeBlock"></div>
+            <div class="controls" id="controlsBar">
+                <button class="btn-secondary" id="btnVoice" onclick="toggleVoice()" style="flex:0;max-width:40px;font-size:1.1em;">🔇</button>
+                <button class="btn-primary" id="btnStart" onclick="toggleAnimation()">开始讲解</button>
+                <button class="btn-secondary" onclick="prevStep()">上一步</button>
+                <button class="btn-secondary" onclick="nextStep()">下一步</button>
+                <button class="btn-secondary" onclick="resetAnimation()">重置</button>
+            </div>
+            <div class="answer-box" id="answerBox" style="display:none;">
+                <div class="label">质数列表</div>
+                <div class="value" id="answerValue">?</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>算法步骤总结</h2>
+            <p><strong>S1：</strong>读取 n，1 不是质数</p>
+            <p><strong>S2：</strong>外层循环 i 从 2 到 n</p>
+            <p><strong>S3：</strong>内层循环 j 从 2 到 &radic;i，判断 i % j == 0</p>
+            <p><strong>S4：</strong>若 i 不能被任何 j 整除，则 i 是质数，输出</p>
+            <p><strong>S5：</strong>循环结束，所有质数已输出</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        let animStep = -1;
+        let isAnimating = false;
+        let isPaused = false;
+        let animTimer = null;
+
+        function resizeCanvas() {
+            const c = document.getElementById('canvas-container');
+            canvas.width = c.clientWidth;
+            canvas.height = c.clientHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+
+        function getValues() {
+            let n = parseInt(document.getElementById('inpN').value) || 1;
+            if (n < 1) n = 1;
+            if (n > 100) n = 100;
+            return { n };
+        }
+
+        function getPrimeStatus(n, limit) {
+            let isPrime = new Array(n + 1).fill(false);
+            let isChecked = new Array(n + 1).fill(false);
+            isChecked[1] = true;
+            for (let i = 2; i <= limit && i <= n; i++) {
+                isChecked[i] = true;
+                let p = true;
+                for (let j = 2; j * j <= i; j++) {
+                    if (i % j === 0) { p = false; break; }
+                }
+                isPrime[i] = p;
+            }
+            return { isPrime, isChecked };
+        }
+
+        function getCheckLimit() {
+            const { n } = getValues();
+            if (animStep <= 0) return 1;
+            if (animStep === 1) return Math.max(2, Math.floor(n / 4));
+            if (animStep === 2) return Math.max(2, Math.floor(n / 2));
+            if (animStep === 3) return Math.max(2, Math.floor(n * 3 / 4));
+            return n;
+        }
+
+        function draw() {
+            const { n } = getValues();
+            const limit = getCheckLimit();
+            const { isPrime, isChecked } = getPrimeStatus(n, limit);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let cols = 10;
+            if (n <= 30) cols = 6;
+            if (n <= 20) cols = 5;
+            let rows = Math.ceil(n / cols);
+
+            const pad = 8;
+            const availW = canvas.width - pad * 2;
+            const availH = canvas.height - pad * 2 - 24;
+            const cellW = availW / cols;
+            const cellH = availH / rows;
+            const cellSize = Math.min(cellW, cellH);
+            const offsetX = (canvas.width - cols * cellSize) / 2;
+            const offsetY = pad + 24;
+
+            for (let num = 1; num <= n; num++) {
+                const col = (num - 1) % cols;
+                const row = Math.floor((num - 1) / cols);
+                const cx = offsetX + col * cellSize + cellSize / 2;
+                const cy = offsetY + row * cellSize + cellSize / 2;
+                const r = cellSize * 0.38;
+
+                let fill = 'rgba(255,255,255,0.08)';
+                let stroke = 'rgba(255,255,255,0.15)';
+                let textColor = '#ccc';
+
+                if (num === 1) {
+                    fill = 'rgba(100,100,100,0.25)';
+                    textColor = '#777';
+                } else if (isChecked[num]) {
+                    if (isPrime[num]) {
+                        fill = 'rgba(81,207,102,0.2)';
+                        stroke = 'rgba(81,207,102,0.5)';
+                        textColor = '#51cf66';
+                    } else {
+                        fill = 'rgba(255,107,107,0.12)';
+                        stroke = 'rgba(255,107,107,0.3)';
+                        textColor = '#c55';
+                    }
+                }
+
+                if (animStep >= 1 && animStep <= 3 && num === limit && num > 1) {
+                    fill = 'rgba(255,212,59,0.2)';
+                    stroke = '#ffd43b';
+                    textColor = '#ffd43b';
+                }
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.fillStyle = fill;
+                ctx.fill();
+                ctx.strokeStyle = stroke;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.fillStyle = textColor;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const fs = Math.max(9, Math.min(14, cellSize * 0.42));
+                ctx.font = (num === limit && animStep >= 1 && animStep <= 3 ? 'bold ' : '') + fs + 'px Microsoft YaHei';
+                ctx.fillText(num, cx, cy);
+            }
+
+            ctx.textAlign = 'center';
+            ctx.font = '12px Microsoft YaHei';
+            if (animStep === -1 || animStep === 0) {
+                ctx.fillStyle = '#888';
+                ctx.fillText('1 既不是质数也不是合数', canvas.width / 2, 18);
+            } else if (animStep === 2) {
+                ctx.fillStyle = '#ffd43b';
+                const example = n >= 9 ? 9 : (n >= 4 ? 4 : 6);
+                ctx.fillText('试除示例：' + example + ' 可被 ' + Math.floor(Math.sqrt(example)) + ' 以内的数整除', canvas.width / 2, 18);
+            } else if (animStep === 4) {
+                let count = 0;
+                for (let i = 2; i <= n; i++) if (isPrime[i]) count++;
+                ctx.fillStyle = '#51cf66';
+                ctx.font = 'bold 13px Microsoft YaHei';
+                ctx.fillText('共找到 ' + count + ' 个质数', canvas.width / 2, 18);
+            }
+        }
+
+        function updateExplanation() {
+            const texts = [
+                "点击「开始讲解」，我们来看看如何一步步筛选质数！",
+                "第一步：读取正整数 n（1 &le; n &le; 100），输出所有小于等于 n 的质数。",
+                "第二步：对每个数 m（从2到n），用试除法判断是否为质数。用 bool isprime 标记，一旦找到因子就 break 提前退出。",
+                "第三步：如果 isprime 仍为 true，说明 m 没有被任何数整除，是质数，输出它。",
+                "第四步：所有数检查完毕，程序结束。这个方法的时间复杂度是 O(n&sup2;)，对于 n&le;100 完全够用。"
+            ];
+            const labels = [
+                "C++ 完整代码概览", "Step 1：读取输入", "Step 2：试除法判质数",
+                "Step 3：输出质数", "Step 4：完成"
+            ];
+            const codes = [
+                '<span class="keyword">&lt;bits/stdc++.h&gt;</span>\n<span class="keyword">using namespace</span> std;\n\n<span class="keyword">int</span> main() {\n    <span class="keyword">int</span> n;\n    cin <span class="op">&gt;&gt;</span> n;\n    <span class="comment">// 后续步骤逐步展开...</span>\n    <span class="keyword">return</span> <span class="number">0</span>;\n}',
+                '<span class="keyword">int</span> n;\ncin <span class="op">&gt;&gt;</span> n;\n<span class="comment">// n = 上限，输出所有 ≤ n 的质数</span>',
+                '<span class="keyword">for</span> (<span class="keyword">int</span> m = <span class="number">2</span>; m <span class="op">&lt;=</span> n; m++) {\n    <span class="type">bool</span> isprime = <span class="keyword">true</span>;\n    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">2</span>; i <span class="op">&lt;</span> m; i++)\n        <span class="keyword">if</span> (m % i == <span class="number">0</span>) {\n            isprime = <span class="keyword">false</span>;\n            <span class="keyword">break</span>;\n        }\n    <span class="comment">// 用 bool 标记是否为质数，找到因子就break</span>',
+                '    <span class="keyword">if</span> (isprime)\n        cout <span class="op">&lt;&lt;</span> m <span class="op">&lt;&lt;</span> endl;\n}\n<span class="comment">// 只有 isprime 为 true 才输出</span>',
+                '<span class="keyword">return</span> <span class="number">0</span>;\n<span class="comment">// 完成！时间复杂度 O(n&sup2;)</span>'
+            ];
+
+            const idx = animStep + 1;
+            document.getElementById('explanation').innerHTML = '<p>' + texts[idx] + '</p>';
+            document.getElementById('codeLabel').textContent = labels[idx];
+            document.getElementById('codeBlock').innerHTML = codes[idx];
+            speakText(texts[idx]);
+
+            for (let i = 0; i <= 4; i++) {
+                const d = document.getElementById('dot' + i);
+                d.classList.remove('active', 'completed');
+                if (i === animStep) d.classList.add('active');
+                else if (i < animStep) d.classList.add('completed');
+            }
+
+            if (animStep >= 4) {
+                const { n } = getValues();
+                let primes = [];
+                for (let i = 2; i <= n; i++) {
+                    let p = true;
+                    for (let j = 2; j * j <= i; j++) {
+                        if (i % j === 0) { p = false; break; }
+                    }
+                    if (p) primes.push(i);
+                }
+                document.getElementById('answerBox').style.display = 'block';
+                document.getElementById('answerValue').textContent = primes.join(', ');
+            } else {
+                document.getElementById('answerBox').style.display = 'none';
+            }
+            draw();
+        }
+
+        function startAnimation() {
+            resetAnimation();
+            isAnimating = true; isPaused = false; animStep = 0;
+            updateExplanation(); updateStartButton();
+            animTimer = setInterval(() => {
+                if (!isPaused) {
+                    if (animStep >= 4) {
+                        clearInterval(animTimer);
+                        isAnimating = false;
+                        updateStartButton();
+                        return;
+                    }
+                    animStep++;
+                    updateExplanation(); updateStartButton();
+                }
+            }, 2500);
+        }
+
+        function toggleAnimation() {
+            if (!isAnimating) { startAnimation(); }
+            else if (isPaused) { isPaused = false; updateStartButton(); }
+            else { isPaused = true; stopSpeaking(); updateStartButton(); }
+        }
+
+        function updateStartButton() {
+            const b = document.getElementById('btnStart');
+            if (!isAnimating) { b.textContent = '开始讲解'; b.className = 'btn-primary'; }
+            else if (isPaused) { b.textContent = '继续'; b.className = 'btn-primary'; }
+            else { b.textContent = '暂停'; b.className = 'btn-secondary'; }
+        }
+
+        function nextStep() {
+            if (isAnimating) { clearInterval(animTimer); isAnimating = false; isPaused = false; updateStartButton(); }
+            if (animStep < 4) { animStep++; updateExplanation(); }
+        }
+
+        function prevStep() {
+            if (isAnimating) { clearInterval(animTimer); isAnimating = false; isPaused = false; updateStartButton(); }
+            if (animStep > 0) { animStep--; updateExplanation(); }
+        }
+
+        function resetAnimation() {
+            if (animTimer) clearInterval(animTimer);
+            isAnimating = false; isPaused = false; animStep = -1;
+            stopSpeaking();
+            document.getElementById('explanation').innerHTML = '<p>点击「开始讲解」，我们来看看如何一步步筛选质数！</p>';
+            document.getElementById('codeLabel').textContent = 'C++ 完整代码概览';
+            document.getElementById('codeBlock').innerHTML = '<span class="keyword">&lt;bits/stdc++.h&gt;</span>\n<span class="keyword">using namespace</span> std;\n\n<span class="keyword">int</span> main() {\n    <span class="keyword">int</span> n;\n    cin <span class="op">&gt;&gt;</span> n;\n    <span class="comment">// 后续步骤逐步展开...</span>\n    <span class="keyword">return</span> <span class="number">0</span>;\n}';
+            for (let i = 0; i <= 4; i++) { const d = document.getElementById('dot' + i); d.classList.remove('active', 'completed'); if (i === 0) d.classList.add('active'); }
+            document.getElementById('answerBox').style.display = 'none';
+            updateStartButton(); draw();
+        }
+
+        document.getElementById('inpN').addEventListener('input', () => { if (animStep >= 0) updateExplanation(); else draw(); });
+
+        resetAnimation();
+        draw();
+    </script>
+    <script>
+let voiceEnabled = true;
+function speakText(text) {
+    if (!voiceEnabled || !window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = 0.9;
+    speechSynthesis.speak(u);
+}
+function stopSpeaking() {
+    if (window.speechSynthesis) speechSynthesis.cancel();
+}
+function toggleVoice() {
+    voiceEnabled = !voiceEnabled;
+    const btn = document.getElementById('btnVoice');
+    if (btn) { btn.textContent = voiceEnabled ? '🔇' : '🔊'; btn.style.opacity = voiceEnabled ? '1' : '0.5'; }
+    if (!voiceEnabled) stopSpeaking();
+}
+</script>
+</body>
+</html>

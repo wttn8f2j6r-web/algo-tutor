@@ -70,7 +70,8 @@
             <div class="code-label" id="codeLabel">C++ 完整代码概览</div>
             <div class="code-block" id="codeBlock"></div>
             <div class="controls" id="controlsBar">
-                <button class="btn-primary" id="btnStart" onclick="toggleAnimation()">开始讲解</button>
+                <button class="btn-secondary" id="btnVoice" onclick="toggleVoice()" style="flex:0;max-width:40px;font-size:1.1em;">🔇</button>
+                        <button class="btn-primary" id="btnStart" onclick="toggleAnimation()">开始讲解</button>
                 <button class="btn-secondary" onclick="prevStep()">上一步</button>
                 <button class="btn-secondary" onclick="nextStep()">下一步</button>
                 <button class="btn-secondary" onclick="resetAnimation()">重置</button>
@@ -334,5 +335,52 @@
 
         resetAnimation();
         draw();
-    </script></body>
+    </script>    <script>
+    // Audio player with fetch-based loading (avoids 416 errors)
+    let currentAudio = null;
+    let voiceEnabled = true;
+    const audioUrls = ['https://cdn.jsdelivr.net/gh/WTTN8F2J6R-Web/algo-tutor@main/audio/n5696_0.mp3', 'https://cdn.jsdelivr.net/gh/WTTN8F2J6R-Web/algo-tutor@main/audio/n5696_1.mp3', 'https://cdn.jsdelivr.net/gh/WTTN8F2J6R-Web/algo-tutor@main/audio/n5696_2.mp3', 'https://cdn.jsdelivr.net/gh/WTTN8F2J6R-Web/algo-tutor@main/audio/n5696_3.mp3', 'https://cdn.jsdelivr.net/gh/WTTN8F2J6R-Web/algo-tutor@main/audio/n5696_4.mp3'];
+    const audioBlobs = [];
+    let loadedCount = 0;
+
+    // Fetch all audio files as blobs
+    async function preloadAudio() {
+        for (let i = 0; i < audioUrls.length; i++) {
+            try {
+                const resp = await fetch(audioUrls[i]);
+                if (resp.ok) {
+                    const blob = await resp.blob();
+                    audioBlobs[i] = URL.createObjectURL(blob);
+                    loadedCount++;
+                }
+            } catch (e) {
+                console.log('Audio preload failed:', i, e);
+            }
+        }
+    }
+    // Start preloading after page load
+    preloadAudio();
+
+    function playStepAudio(idx) {
+        if (!voiceEnabled || idx < 0 || idx >= audioUrls.length) return;
+        stopAudio();
+        const blobUrl = audioBlobs[idx];
+        if (!blobUrl) return; // Not loaded yet
+        currentAudio = new Audio(blobUrl);
+        currentAudio.play().catch(e => console.log('Play failed:', e));
+    }
+    function stopAudio() {
+        if (currentAudio) {
+            try { currentAudio.pause(); } catch(e) {}
+            currentAudio = null;
+        }
+    }
+    function toggleVoice() {
+        voiceEnabled = !voiceEnabled;
+        const btn = document.getElementById('btnVoice');
+        if (btn) { btn.textContent = voiceEnabled ? '🔇' : '🔊'; btn.style.opacity = voiceEnabled ? '1' : '0.5'; }
+        if (!voiceEnabled) stopAudio();
+    }
+    </script>
+</body>
 </html>

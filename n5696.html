@@ -340,7 +340,14 @@
     // Pre-recorded audio player with preload
     let currentAudio = null;
     let audioEnabled = true;
-    const audioFiles = ["audio/n5696_0.mp3", "audio/n5696_1.mp3", "audio/n5696_2.mp3", "audio/n5696_3.mp3", "audio/n5696_4.mp3"];
+    const BASE_URL = 'https://wttn8f2j6r-web.github.io/algo-tutor/';
+    const audioFiles = [
+        BASE_URL + 'audio/n5696_0.mp3',
+        BASE_URL + 'audio/n5696_1.mp3',
+        BASE_URL + 'audio/n5696_2.mp3',
+        BASE_URL + 'audio/n5696_3.mp3',
+        BASE_URL + 'audio/n5696_4.mp3'
+    ];
     const preloadedAudios = [];
 
     // Preload all audio files

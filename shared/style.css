@@ -499,7 +499,31 @@ input[type="range"]::-webkit-slider-thumb {
     color: var(--muted);
 }
 
+/* --- Two-column layout for problem pages --- */
+.problem-layout {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+.problem-layout .left-panel {
+    flex: 1;
+    min-width: 0;
+}
+.problem-layout .right-panel {
+    width: 45%;
+    min-width: 320px;
+    position: sticky;
+    top: 16px;
+}
+.problem-layout .right-panel .card {
+    margin-bottom: 12px;
+}
+
 /* --- Responsive --- */
+@media (max-width: 768px) {
+    .problem-layout { flex-direction: column; }
+    .problem-layout .right-panel { width: 100%; position: static; }
+}
 @media (max-width: 480px) {
     .container { padding: 10px 8px; }
     h1 { font-size: 1.3em; }

@@ -258,7 +258,7 @@
             document.getElementById('explanation').innerHTML = '<p>' + stepTexts[idx] + '</p>';
             document.getElementById('codeLabel').textContent = stepLabels[idx];
             document.getElementById('codeBlock').innerHTML = stepCodes[idx];
-            speakText(stepTexts[idx]);
+            playStepAudio(idx);
 
             for (let i = 0; i <= 4; i++) {
                 const d = document.getElementById('dot' + i);
@@ -299,7 +299,7 @@
         function toggleAnimation() {
             if (!isAnimating) { startAnimation(); }
             else if (isPaused) { isPaused = false; updateStartButton(); }
-            else { isPaused = true; stopSpeaking(); updateStartButton(); }
+            else { isPaused = true; stopAudio(); updateStartButton(); }
         }
 
         function updateStartButton() {
@@ -322,7 +322,7 @@
         function resetAnimation() {
             if (animTimer) clearInterval(animTimer);
             isAnimating = false; isPaused = false; animStep = -1;
-            stopSpeaking();
+            stopAudio();
             document.getElementById('explanation').innerHTML = '<p>点击「开始讲解」，我们来看看如何一步步找出所有完数！</p>';
             document.getElementById('codeLabel').textContent = 'C++ 完整代码概览';
             document.getElementById('codeBlock').innerHTML = '<span class="keyword">#include</span> <span class="keyword">&lt;bits/stdc++.h&gt;</span>\n<span class="keyword">using namespace</span> std;\n\n<span class="keyword">int</span> main() {\n    <span class="keyword">int</span> n;\n    cin <span class="op">&gt;&gt;</span> n;\n    <span class="comment">// 后续步骤逐步展开...</span>\n    <span class="keyword">return</span> <span class="number">0</span>;\n}';
@@ -341,44 +341,27 @@
     let voiceEnabled = true;
     let currentUtterance = null;
 
-    let mandarinVoice = null;
-    function findMandarinVoice() {
-        if (mandarinVoice) return mandarinVoice;
-        const voices = speechSynthesis.getVoices();
-        const keywords = ['Mandarin','Huihui','Yaoyao','Kangkang','Ting-Ting','Mei-Jia'];
-        for (const kw of keywords) {
-            const v = voices.find(v => v.name.includes(kw) && !v.name.includes('Cantonese'));
-            if (v) { mandarinVoice = v; break; }
-        }
-        if (!mandarinVoice) {
-            mandarinVoice = voices.find(v => v.lang === 'zh-CN' && !v.name.includes('Cantonese') && !v.name.includes('Tracy') && !v.name.includes('HiuGaai'));
-        }
-        return mandarinVoice;
-    }
-    speechSynthesis.onvoiceschanged = findMandarinVoice;
-    function speakText(text) {
-        if (!voiceEnabled || !window.speechSynthesis) return;
-        speechSynthesis.cancel();
-        currentUtterance = new SpeechSynthesisUtterance(text);
-        const v = findMandarinVoice();
-        if (v) currentUtterance.voice = v;
-        currentUtterance.lang = 'zh-CN';
-        currentUtterance.rate = 0.9;
-        speechSynthesis.speak(currentUtterance);
-    }
+        // Pre-recorded audio player
+    let currentAudio = null;
+    let audioEnabled = true;
+    const audioFiles = ["audio/n5696_0.mp3", "audio/n5696_1.mp3", "audio/n5696_2.mp3", "audio/n5696_3.mp3", "audio/n5696_4.mp3"];
 
-    function stopSpeaking() {
-        if (window.speechSynthesis) speechSynthesis.cancel();
+    function playStepAudio(idx) {
+        if (!audioEnabled || idx < 0 || idx >= audioFiles.length) return;
+        stopAudio();
+        currentAudio = new Audio(audioFiles[idx]);
+        currentAudio.play().catch(e => {});
     }
-
+    function stopAudio() {
+        if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; currentAudio = null; }
+    }
     function toggleVoice() {
-        voiceEnabled = !voiceEnabled;
+        audioEnabled = !audioEnabled;
         const btn = document.getElementById('btnVoice');
-        if (btn) {
-            btn.textContent = voiceEnabled ? '🔇' : '🔊';
-            btn.style.opacity = voiceEnabled ? '1' : '0.5';
-        }
-        if (!voiceEnabled) stopSpeaking();
+        if (btn) { btn.textContent = audioEnabled ? '🔇' : '🔊'; btn.style.opacity = audioEnabled ? '1' : '0.5'; }
+        if (!audioEnabled) stopAudio();
+    }
+        if (!voiceEnabled) stopAudio();
     }
     </script>
 </body>

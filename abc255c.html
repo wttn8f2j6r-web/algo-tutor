@@ -323,19 +323,40 @@
         draw();
     </script>
     <script>
-    // Pre-recorded audio player
+    // Pre-recorded audio player with preload
     let currentAudio = null;
     let audioEnabled = true;
     const audioFiles = ["audio/abc255c_0.mp3", "audio/abc255c_1.mp3", "audio/abc255c_2.mp3", "audio/abc255c_3.mp3", "audio/abc255c_4.mp3", "audio/abc255c_5.mp3"];
+    const preloadedAudios = [];
+
+    // Preload all audio files
+    audioFiles.forEach((src, i) => {
+        const a = new Audio(src);
+        a.preload = 'auto';
+        preloadedAudios[i] = a;
+    });
 
     function playStepAudio(idx) {
         if (!audioEnabled || idx < 0 || idx >= audioFiles.length) return;
         stopAudio();
-        currentAudio = new Audio(audioFiles[idx]);
-        currentAudio.play().catch(e => {});
+        const a = preloadedAudios[idx];
+        if (a) {
+            a.currentTime = 0;
+            const playPromise = a.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(e => {
+                    console.log('Audio play failed:', e.message);
+                });
+            }
+            currentAudio = a;
+        }
     }
     function stopAudio() {
-        if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; currentAudio = null; }
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            currentAudio = null;
+        }
     }
     function toggleVoice() {
         audioEnabled = !audioEnabled;

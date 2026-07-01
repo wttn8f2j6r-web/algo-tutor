@@ -332,7 +332,6 @@
         draw();
     </script>
     <script>
-let voiceEnabled = true;
     // Pre-recorded audio player
     let currentAudio = null;
     let audioEnabled = true;
@@ -353,8 +352,6 @@ let voiceEnabled = true;
         if (btn) { btn.textContent = audioEnabled ? '🔇' : '🔊'; btn.style.opacity = audioEnabled ? '1' : '0.5'; }
         if (!audioEnabled) stopAudio();
     }
-    if (!voiceEnabled) stopAudio();
-}
-</script>
+    </script>
 </body>
 </html>

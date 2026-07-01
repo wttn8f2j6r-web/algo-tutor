@@ -337,11 +337,7 @@
         draw();
     </script>
     <script>
-    // Voice system
-    let voiceEnabled = true;
-    let currentUtterance = null;
-
-        // Pre-recorded audio player
+    // Pre-recorded audio player
     let currentAudio = null;
     let audioEnabled = true;
     const audioFiles = ["audio/n5696_0.mp3", "audio/n5696_1.mp3", "audio/n5696_2.mp3", "audio/n5696_3.mp3", "audio/n5696_4.mp3"];
@@ -360,8 +356,6 @@
         const btn = document.getElementById('btnVoice');
         if (btn) { btn.textContent = audioEnabled ? '🔇' : '🔊'; btn.style.opacity = audioEnabled ? '1' : '0.5'; }
         if (!audioEnabled) stopAudio();
-    }
-        if (!voiceEnabled) stopAudio();
     }
     </script>
 </body>

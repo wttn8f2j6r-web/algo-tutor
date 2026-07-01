@@ -49,7 +49,6 @@
                     <div class="code-label" id="codeLabel">C++ 完整代码概览</div>
                     <div class="code-block" id="codeBlock"></div>
                     <div class="controls" id="controlsBar">
-                        <button class="btn-secondary" id="btnVoice" onclick="toggleVoice()" style="flex:0;max-width:40px;font-size:1.1em;">🔇</button>
                         <button class="btn-primary" id="btnStart" onclick="toggleAnimation()">开始讲解</button>
                         <button class="btn-secondary" onclick="prevStep()">上一步</button>
                         <button class="btn-secondary" onclick="nextStep()">下一步</button>
@@ -243,7 +242,7 @@
             document.getElementById('codeLabel').textContent = labels[idx];
             document.getElementById('codeBlock').innerHTML = codes[idx];
 
-            playStepAudio(idx);
+            
 
             for (let i = 0; i <= 4; i++) {
                 const d = document.getElementById('dot' + i);
@@ -283,7 +282,7 @@
         function toggleAnimation() {
             if (!isAnimating) { startAnimation(); }
             else if (isPaused) { isPaused = false; updateStartButton(); }
-            else { isPaused = true; if (typeof stopAudio === 'function') stopAudio(); updateStartButton(); }
+            else { isPaused = true;  updateStartButton(); }
         }
 
         function updateStartButton() {
@@ -306,7 +305,7 @@
         function resetAnimation() {
             if (animTimer) clearInterval(animTimer);
             isAnimating = false; isPaused = false; animStep = -1;
-            if (typeof stopAudio === 'function') if (typeof stopAudio === 'function') stopAudio();
+            if (typeof stopAudio === 'function') 
             document.getElementById('explanation').innerHTML = '<p>点击「开始讲解」，我们来看看如何一步步求解！</p>';
             document.getElementById('codeLabel').textContent = 'C++ 完整代码概览';
             document.getElementById('codeBlock').innerHTML = '<span class="keyword">#include</span> <span class="string">&lt;bits/stdc++.h&gt;</span>\n<span class="keyword">using namespace</span> std;\n<span class="keyword">using</span> LL <span class="op">=</span> <span class="type">long long</span>;\n\n<span class="keyword">int</span> main() {\n    LL x, a, d, n;\n    cin <span class="op">&gt;&gt;</span> x <span class="op">&gt;&gt;</span> a <span class="op">&gt;&gt;</span> d <span class="op">&gt;&gt;</span> n;\n    <span class="comment">// 后续步骤逐步展开...</span>\n    <span class="keyword">return</span> <span class="number">0</span>;\n}';
@@ -321,64 +320,5 @@
 
         resetAnimation();
         draw();
-    </script>
-    <script>
-    // Pre-recorded audio player with preload
-    let currentAudio = null;
-    let audioEnabled = true;
-    const BASE_URL = 'https://cdn.jsdelivr.net/gh/WTTN8F2J6R-Web/algo-tutor@main/audio/';
-    const audioFiles = [
-        BASE_URL + 'audio/abc255c_0.mp3',
-        BASE_URL + 'audio/abc255c_1.mp3',
-        BASE_URL + 'audio/abc255c_2.mp3',
-        BASE_URL + 'audio/abc255c_3.mp3',
-        BASE_URL + 'audio/abc255c_4.mp3',
-        BASE_URL + 'audio/abc255c_5.mp3'
-    ];
-    const preloadedAudios = [];
-    let audioLoadedCount = 0;
-
-    // Preload all audio files
-    audioFiles.forEach((src, i) => {
-        const a = new Audio(src);
-        a.preload = 'auto';
-        a.addEventListener('canplaythrough', () => { audioLoadedCount++; });
-        a.addEventListener('error', (e) => { console.log('Audio load error:', i, e); });
-        preloadedAudios[i] = a;
-    });
-
-    function playStepAudio(idx) {
-        if (!audioEnabled || idx < 0 || idx >= audioFiles.length) return;
-        if (typeof stopAudio === 'function') stopAudio();
-        const a = preloadedAudios[idx];
-        if (a) {
-            a.currentTime = 0;
-            const playPromise = a.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(e => {
-                    console.log('Audio play failed:', e.message);
-                    // Fallback: try creating a new Audio object
-                    const fallback = new Audio(audioFiles[idx]);
-                    fallback.play().catch(err => console.log('Fallback also failed:', err));
-                    currentAudio = fallback;
-                });
-            }
-            currentAudio = a;
-        }
-    }
-    function stopAudio() {
-        if (currentAudio) {
-            try { currentAudio.pause(); } catch(e) {}
-            try { currentAudio.currentTime = 0; } catch(e) {}
-            currentAudio = null;
-        }
-    }
-    function toggleVoice() {
-        audioEnabled = !audioEnabled;
-        const btn = document.getElementById('btnVoice');
-        if (btn) { btn.textContent = audioEnabled ? '🔇' : '🔊'; btn.style.opacity = audioEnabled ? '1' : '0.5'; }
-        if (!audioEnabled) if (typeof stopAudio === 'function') stopAudio();
-    }
-    </script>
-</body>
+    </script></body>
 </html>

@@ -326,13 +326,24 @@
     // Pre-recorded audio player with preload
     let currentAudio = null;
     let audioEnabled = true;
-    const audioFiles = ["audio/abc255c_0.mp3", "audio/abc255c_1.mp3", "audio/abc255c_2.mp3", "audio/abc255c_3.mp3", "audio/abc255c_4.mp3", "audio/abc255c_5.mp3"];
+    const BASE_URL = 'https://wttn8f2j6r-web.github.io/algo-tutor/';
+    const audioFiles = [
+        BASE_URL + 'audio/abc255c_0.mp3',
+        BASE_URL + 'audio/abc255c_1.mp3',
+        BASE_URL + 'audio/abc255c_2.mp3',
+        BASE_URL + 'audio/abc255c_3.mp3',
+        BASE_URL + 'audio/abc255c_4.mp3',
+        BASE_URL + 'audio/abc255c_5.mp3'
+    ];
     const preloadedAudios = [];
+    let audioLoadedCount = 0;
 
     // Preload all audio files
     audioFiles.forEach((src, i) => {
         const a = new Audio(src);
         a.preload = 'auto';
+        a.addEventListener('canplaythrough', () => { audioLoadedCount++; });
+        a.addEventListener('error', (e) => { console.log('Audio load error:', i, e); });
         preloadedAudios[i] = a;
     });
 
@@ -346,6 +357,10 @@
             if (playPromise !== undefined) {
                 playPromise.catch(e => {
                     console.log('Audio play failed:', e.message);
+                    // Fallback: try creating a new Audio object
+                    const fallback = new Audio(audioFiles[idx]);
+                    fallback.play().catch(err => console.log('Fallback also failed:', err));
+                    currentAudio = fallback;
                 });
             }
             currentAudio = a;
@@ -353,8 +368,8 @@
     }
     function stopAudio() {
         if (currentAudio) {
-            currentAudio.pause();
-            currentAudio.currentTime = 0;
+            try { currentAudio.pause(); } catch(e) {}
+            try { currentAudio.currentTime = 0; } catch(e) {}
             currentAudio = null;
         }
     }

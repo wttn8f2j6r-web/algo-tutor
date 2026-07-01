@@ -150,17 +150,17 @@
             const pad = 40, cy = canvas.height / 2;
 
             // 数轴
-            ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(pad, cy); ctx.lineTo(canvas.width - pad, cy); ctx.stroke();
 
             // 刻度
-            ctx.fillStyle = '#888'; ctx.textAlign = 'center';
+            ctx.fillStyle = '#6b7280'; ctx.textAlign = 'center';
             const fs = Math.min(11, canvas.width / 40);
             ctx.font = fs + 'px Microsoft YaHei';
             for (let v = Math.floor(minV); v <= Math.ceil(maxV); v++) {
                 const x = worldToScreen(v, minV, maxV, canvas.width, pad);
                 ctx.beginPath(); ctx.moveTo(x, cy - 4); ctx.lineTo(x, cy + 4);
-                ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.stroke();
+                ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.stroke();
                 ctx.fillText(v, x, cy + 16);
             }
 
@@ -172,7 +172,7 @@
                 ctx.beginPath(); ctx.arc(x, cy - 30, r, 0, Math.PI * 2);
                 ctx.fillStyle = isN ? '#ffd43b' : '#51cf66'; ctx.fill();
                 if (isN) { ctx.shadowColor = '#ffd43b'; ctx.shadowBlur = 15; ctx.stroke(); ctx.shadowBlur = 0; }
-                ctx.fillStyle = '#fff'; ctx.font = (isN ? 'bold ' : '') + fs + 'px Microsoft YaHei';
+                ctx.fillStyle = '#1f2937'; ctx.font = (isN ? 'bold ' : '') + fs + 'px Microsoft YaHei';
                 ctx.fillText(v, x, cy - 26);
                 if (i === 0) { ctx.fillStyle = '#51cf66'; ctx.font = (fs-1) + 'px Microsoft YaHei'; ctx.fillText('A', x, cy - 46); }
                 else if (i === seq.length - 1) { ctx.fillStyle = '#51cf66'; ctx.font = (fs-1) + 'px Microsoft YaHei'; ctx.fillText('末项', x, cy - 46); }
@@ -182,7 +182,7 @@
             // X
             const xp = worldToScreen(X, minV, maxV, canvas.width, pad);
             ctx.beginPath(); ctx.arc(xp, cy + 30, 10, 0, Math.PI * 2); ctx.fillStyle = '#ff6b6b'; ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.font = 'bold ' + fs + 'px Microsoft YaHei'; ctx.fillText('X=' + X, xp, cy + 34);
+            ctx.fillStyle = '#1f2937'; ctx.font = 'bold ' + fs + 'px Microsoft YaHei'; ctx.fillText('X=' + X, xp, cy + 34);
 
             // 连线
             if (animStep >= 4) {
@@ -201,8 +201,8 @@
                 const rightVal = Math.max(A, last);
                 const l = worldToScreen(leftVal, minV, maxV, canvas.width, pad);
                 const r = worldToScreen(rightVal, minV, maxV, canvas.width, pad);
-                ctx.fillStyle = 'rgba(81,207,102,0.06)'; ctx.fillRect(l, cy - 60, r - l, 80);
-                ctx.strokeStyle = 'rgba(81,207,102,0.3)'; ctx.lineWidth = 1; ctx.strokeRect(l, cy - 60, r - l, 80);
+                ctx.fillStyle = 'rgba(16,185,129,0.08)'; ctx.fillRect(l, cy - 60, r - l, 80);
+                ctx.strokeStyle = 'rgba(16,185,129,0.4)'; ctx.lineWidth = 1; ctx.strokeRect(l, cy - 60, r - l, 80);
                 if (animStep === 2) { ctx.fillStyle = '#51cf66'; ctx.font = (fs-1) + 'px Microsoft YaHei'; ctx.fillText('好数范围', (l + r) / 2, cy - 64); }
             }
             
